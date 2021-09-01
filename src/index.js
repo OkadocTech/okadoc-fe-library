@@ -1,5 +1,5 @@
 import kong from '@libs/kong';
 
-export {
+module.exports = {
     kong
 };
