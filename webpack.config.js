@@ -7,8 +7,10 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'index.js',
-        library: 'okadoc-libs',
-        libraryTarget: 'commonjs2'
+        library: {
+            name: 'okadoc-library',
+            type: 'umd'
+        }
     },
     module: {
         rules: [
