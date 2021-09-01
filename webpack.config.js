@@ -7,7 +7,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'index.js',
-        library: 'okalibs',
+        library: 'okadoc-libs',
         libraryTarget: 'commonjs2'
     },
     module: {
