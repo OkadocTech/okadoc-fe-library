@@ -1,1 +1,3 @@
-export { default as kong } from '@libs/kong';
+export { sum } from '@libs/math';
+export { multiply } from '@libs/math';
+export { default as math } from '@libs/math';
