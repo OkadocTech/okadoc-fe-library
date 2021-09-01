@@ -18,5 +18,8 @@
     "webpack": "^5.51.1",
     "webpack-cli": "^4.8.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "crypto-js": "^4.1.1",
+    "lodash": "^4.17.21"
+  }
 }

@@ -1,5 +1,1 @@
-import kong from '@libs/kong';
-
-module.exports = {
-    kong
-};
+export { default as kong } from '@libs/kong';
