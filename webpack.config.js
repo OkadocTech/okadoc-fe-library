@@ -10,7 +10,8 @@ module.exports = {
         library: {
             name: 'okadoc-library',
             type: 'umd'
-        }
+        },
+        globalObject: 'this'
     },
     module: {
         rules: [
