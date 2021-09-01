@@ -1,14 +1,17 @@
 const path = require('path');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
     mode: 'production',
     entry: {
-        kong: path.join(__dirname, 'src', 'index.js'),
+        kong: path.join(__dirname, 'src/libraries/kong', 'index.js'),
         // other libs goes here
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: '[name].js',
+        library: 'okalibs',
+        libraryTarget: 'commonjs2'
     },
     module: {
         rules: [
@@ -21,4 +24,7 @@ module.exports = {
             },
         ]
     },
+    plugins: [
+        new CleanWebpackPlugin()
+    ]
 }
