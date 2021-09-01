@@ -6,7 +6,7 @@ module.exports = {
     entry: ['./src/index.js'],
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'libs.js',
+        filename: 'index.js',
         library: 'okalibs',
         libraryTarget: 'commonjs2'
     },
