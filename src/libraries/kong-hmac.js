@@ -30,7 +30,7 @@ class OkaHMAC {
     setConfig = (kongServiceConfigs = null) => {
         if (typeof kongServiceConfigs === 'string') {
             try {
-                this.config = JSON.parse(servicesConfig);
+                this.config = JSON.parse(kongServiceConfigs);
             } catch (error) {
                 this.config = {};   
             }
