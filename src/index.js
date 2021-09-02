@@ -1,1 +1,1 @@
-export { default as kong } from '@libs/kong';
+export { default as OkaHMAC } from '@libs/kong-hmac';

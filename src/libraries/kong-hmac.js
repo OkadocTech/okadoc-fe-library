@@ -17,7 +17,7 @@ const getUrlPath = (url) => {
     return '/';
 };
 
-class Kong {
+class OkaHMAC {
 
     config = {}
 
@@ -93,4 +93,4 @@ class Kong {
     }
 }
 
-export default Kong;
+export default OkaHMAC;

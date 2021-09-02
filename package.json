@@ -1,8 +1,10 @@
 {
-  "name": "okadoc-fe-library",
+  "name": "okadoc-libs",
   "version": "1.0.0",
-  "description": "All Okadoc's Libraries",
+  "description": "All Okadoc's Micro Libraries",
   "main": "dist/index.js",
+  "module": "dist/index.js",
+  "sideEffects": false,
   "repository": "https://github.com/OkadocTech/okadoc-fe-library",
   "author": "Okadoc Frontend",
   "license": "MIT",
