@@ -24,7 +24,21 @@ class OkaHMAC {
     methodList = ['GET', 'POST', 'UPDATE', 'DELETE', 'PUT']
 
     constructor(kongServiceConfigs = '{}') {
-        this.config = kongServiceConfigs;
+        this.setConfig(kongServiceConfigs)
+    }
+
+    setConfig = (kongServiceConfigs = null) => {
+        if (typeof kongServiceConfigs === 'string') {
+            try {
+                this.config = JSON.parse(servicesConfig);
+            } catch (error) {
+                this.config = {};   
+            }
+        } else if (typeof kongServiceConfigs === 'object') {
+            this.config = kongServiceConfigs || {};
+        } else {
+            this.config = {};
+        }
     }
 
     validates = ({ url = null, method = false, type = false }) => {
