@@ -45,7 +45,7 @@ class OkaHMAC {
     methodList = ['GET', 'POST', 'UPDATE', 'DELETE', 'PUT']
 
     constructor(kongServiceConfigs = '{}') {
-        this.setConfig(kongServiceConfigs)
+        this.setConfig(kongServiceConfigs);
         this.hmacInfo = {
             xDigest: null,
             xSignature: null,
@@ -117,7 +117,8 @@ class OkaHMAC {
         const body = sha256(packet);
         const digest = `SHA-256=${Base64.stringify(body)}`;
 
-        const requestUrl = isJQueryAjax ? url : `${baseURL}${url}`;
+        const isFullPathUrl = (/^http(s)?:\/\/.*$/).test(url);
+        const requestUrl = (isJQueryAjax || isFullPathUrl) ? url : `${baseURL}${url}`;
         const path = getUrlPath(requestUrl, params);
         const dateUTC = getUTCDate();
 
@@ -133,10 +134,9 @@ class OkaHMAC {
         };
 
         return {
-            'Oka-Authorization': signature,
+            'Oka-Authorization': signatureHeader,
             Digest: digest,
             Date: dateUTC,
-            method
         };
     }
 
