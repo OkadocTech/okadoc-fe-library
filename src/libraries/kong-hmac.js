@@ -10,32 +10,16 @@ const methodList = ['GET', 'POST', 'UPDATE', 'DELETE', 'PUT'];
 
 const getUTCDate = () => new Date().toUTCString();
 
-const objectToQueryParams = function (params = false) {
-
-    if (typeof params === 'object' && !_isEmpty(params)) {
-        const str = [];
-        for (const p in params) {
-            if (params.hasOwnProperty(p) && params[p]) {
-                str.push(p + '=' + encodeURIComponent(params[p]));
-            }
-        }
-        return _get(str, 'length') > 0 ? `?${str.join('&')}` : '';
-    }
-    return '';
-};
-
-const getUrlPath = (url, params) => {
+const getUrlPath = (url) => {
     let urlPath = url;
-    const queryParams = objectToQueryParams(params);
     const match = url.match(/^(https?:)\/\/(([^:/?#]*)(?::([0-9]+))?)([/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
 
     if (match) {
         urlPath = match[5];
+        return urlPath;
     }
 
-    urlPath = `${urlPath}${queryParams}`;
-
-    return urlPath;
+    return url;
 };
 
 class OkaHMAC {
@@ -90,7 +74,7 @@ class OkaHMAC {
     }
 
     generateHeader = (context) => {
-        const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '', params = false } = context;
+        const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '' } = context;
 
         let { method } = context;
 
@@ -99,6 +83,7 @@ class OkaHMAC {
         }
 
         const serviceConfig = this.getConfigs(name);
+
         if (!serviceConfig || !serviceConfig.enabled) {
             return '';
         }
@@ -119,10 +104,10 @@ class OkaHMAC {
 
         const isFullPathUrl = (/^http(s)?:\/\/.*$/).test(url);
         const requestUrl = (isJQueryAjax || isFullPathUrl) ? url : `${baseURL}${url}`;
-        const path = getUrlPath(requestUrl, params);
-        const dateUTC = getUTCDate();
+        const path = getUrlPath(requestUrl);
 
-        const request = `x-date: ${dateUTC}\n${requestMethod} ${path} ${httpVersionVal}\ndigest: ${digest}`;
+        const xDate = getUTCDate();
+        const request = `x-date: ${xDate}\n${requestMethod} ${path} ${httpVersionVal}\ndigest: ${digest}`;
         const hash = hMacSHA256(request, serviceConfig.consumerSecret);
         const signature = Base64.stringify(hash);
         const signatureHeader = `hmac username="${serviceConfig.username}", algorithm="${algorithm}", headers="x-date request-line digest", signature="${signature}"`;
@@ -130,13 +115,13 @@ class OkaHMAC {
         this.hmacInfo = {
             xSignature: signatureHeader,
             xDigest: digest,
-            xDate: dateUTC
+            xDate: xDate
         };
 
         return {
             'Oka-Authorization': signatureHeader,
             Digest: digest,
-            Date: dateUTC,
+            Date: xDate,
         };
     }
 
