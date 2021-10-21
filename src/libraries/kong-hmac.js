@@ -15,8 +15,8 @@ const objectToQueryParams = function (params = false) {
     if (typeof params === 'object' && !_isEmpty(params)) {
         const str = [];
         for (const p in params) {
-            if (params.hasOwnProperty(p)) {
-                str.push(p + '=' + params[p]);
+            if (params.hasOwnProperty(p) && params[p]) {
+                str.push(p + '=' + encodeURIComponent(params[p]));
             }
         }
         return _get(str, 'length') > 0 ? `?${str.join('&')}` : '';
