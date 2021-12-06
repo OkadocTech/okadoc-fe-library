@@ -1,4 +1,5 @@
 const path = require('path');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
@@ -23,6 +24,9 @@ module.exports = {
                 }
             },
         ]
+    },
+    optimization: {
+        minimizer: [new UglifyJsPlugin()],
     },
     plugins: [
         new CleanWebpackPlugin()
