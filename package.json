@@ -1,6 +1,6 @@
 {
   "name": "okadoc-libs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "All Okadoc's Micro Libraries",
   "main": "dist/index.js",
   "module": "dist/index.js",
