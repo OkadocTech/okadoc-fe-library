@@ -32,7 +32,7 @@ module.exports = {
             extractComments: true,
         })],
     },
-    target: ['web', 'es5'],
+    target: ['es5', 'node'],
     plugins: [
         new CleanWebpackPlugin(),
         new Dotenv()
