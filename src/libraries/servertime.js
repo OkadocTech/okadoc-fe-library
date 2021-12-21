@@ -31,7 +31,7 @@ const ServerTime = {
             this.serverTimeCounter = setInterval(() => {
                 const nextSecond = this.serverTime.getSeconds() + 1;
                 this.serverTime.setSeconds(nextSecond);
-                console.log(this.getServerTime().toUTCString());
+                console.log('felibs server time: ', this.getServerTime().toUTCString());
             }, INTERVAL_VAL);
         }
     },
@@ -39,11 +39,13 @@ const ServerTime = {
         if (!this.usingServerTime) {
             const self = this;
             // get server time
+            console.log('felibs url: ', `${process.env.LOCALE_SERVICE_URL}/appservice/time`);
             axios.get(`${process.env.LOCALE_SERVICE_URL}/appservice/time`).then(res => {
+                console.log('felibs res get time: ', res);
                 const isSuccess = res.status === 200;
                 const hasDateTime = res && res.data.data.time;
                 if (isSuccess && hasDateTime) {
-                    self.startServerTimeCounter(result.data.time);
+                    self.startServerTimeCounter(res.data.data.time);
                 }
             });
         }
