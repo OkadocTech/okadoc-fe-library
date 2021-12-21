@@ -36,19 +36,18 @@ const ServerTime = {
     initialize: function () {
         if (!this.usingServerTime) {
             const self = this;
-            const serverTimeReq = new XMLHttpRequest();
-
-            serverTimeReq.onload = function () {
-                const isSuccess = serverTimeReq.status === 200;
-                const hasDateTime = serverTimeReq.response.data && serverTimeReq.response.data.time;
-                if (isSuccess && hasDateTime) {
-                    self.startServerTimeCounter(serverTimeReq.response.data.time);
-                }
-            };
-
-            serverTimeReq.responseType = 'json';
-            serverTimeReq.open('GET', `${process.env.LOCALE_SERVICE_URL}/appservice/time`);
-            serverTimeReq.send();
+            // get server time
+            fetch(`https://service.okadoc.co/locale/v1/appservice/time`)
+                .then(response => {
+                    if (response.ok) {
+                        response.json().then(result => {
+                            const hasDateTime = result && result.data.time;
+                            if (hasDateTime) {
+                                self.startServerTimeCounter(result.data.time);
+                            }
+                        });
+                    }
+                });
         }
     }
 };
