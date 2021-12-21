@@ -1,3 +1,5 @@
+const fetch = require('node-fetch');
+
 const INTERVAL_VAL = 1000;
 const isValidDate = function (dateTime) {
     if (dateTime) {
