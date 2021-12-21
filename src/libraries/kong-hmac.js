@@ -3,6 +3,7 @@ import _isEmpty from 'lodash/isEmpty';
 import sha256 from 'crypto-js/sha256';
 import Base64 from 'crypto-js/enc-base64';
 import hMacSHA256 from 'crypto-js/hmac-sha256';
+import ServerTime from './servertime';
 
 const defaultHttpVersion = 'HTTP/1.1';
 const algorithm = 'hmac-sha256';
@@ -35,6 +36,8 @@ class OkaHMAC {
             xSignature: null,
             xDate: null
         };
+
+        ServerTime.initialize();
     }
 
     setConfig = (kongServiceConfigs = null) => {
@@ -106,7 +109,8 @@ class OkaHMAC {
         const requestUrl = (isJQueryAjax || isFullPathUrl) ? url : `${baseURL}${url}`;
         const path = getUrlPath(requestUrl);
 
-        const xDate = getUTCDate();
+        // const xDate = getUTCDate();
+        const xDate = ServerTime.getServerTime().toUTCString();
         const request = `x-date: ${xDate}\n${requestMethod} ${path} ${httpVersionVal}\ndigest: ${digest}`;
         const hash = hMacSHA256(request, serviceConfig.consumerSecret);
         const signature = Base64.stringify(hash);
