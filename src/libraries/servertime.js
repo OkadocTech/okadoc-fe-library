@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+import axios from 'axios';
 
 const INTERVAL_VAL = 1000;
 const isValidDate = function (dateTime) {
@@ -39,17 +39,13 @@ const ServerTime = {
         if (!this.usingServerTime) {
             const self = this;
             // get server time
-            fetch(`https://service.okadoc.co/locale/v1/appservice/time`)
-                .then(response => {
-                    if (response.ok) {
-                        response.json().then(result => {
-                            const hasDateTime = result && result.data.time;
-                            if (hasDateTime) {
-                                self.startServerTimeCounter(result.data.time);
-                            }
-                        });
-                    }
-                });
+            axios.get(`${process.env.LOCALE_SERVICE_URL}/appservice/time`).then(res => {
+                const isSuccess = res.status === 200;
+                const hasDateTime = res && res.data.data.time;
+                if (isSuccess && hasDateTime) {
+                    self.startServerTimeCounter(result.data.time);
+                }
+            });
         }
     }
 };
