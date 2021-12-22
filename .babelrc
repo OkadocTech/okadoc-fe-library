@@ -19,7 +19,7 @@
                     "./src"
                 ],
                 "alias": {
-                    "@libs": "./src/libraries",
+                    "@libs": "./src/libraries"
                 }
             }
         ]
