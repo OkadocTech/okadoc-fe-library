@@ -1,7 +1,6 @@
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const Dotenv = require('dotenv-webpack');
 
 module.exports = {
     mode: 'production',
@@ -34,7 +33,6 @@ module.exports = {
     },
     target: ['es5', 'node'],
     plugins: [
-        new CleanWebpackPlugin(),
-        new Dotenv()
+        new CleanWebpackPlugin()
     ]
 }

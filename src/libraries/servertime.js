@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const INTERVAL_VAL = 1000;
+const SERVER_TIME_API_URL= 'https://service.okadoc.com/locale/v1/appservice/time';
 const isValidDate = function (dateTime) {
     if (dateTime) {
         try {
@@ -38,7 +39,7 @@ const ServerTime = {
         if (!this.usingServerTime) {
             const self = this;
             // get server time
-            axios.get(`${process.env.LOCALE_SERVICE_URL}/appservice/time`).then(res => {
+            axios.get(SERVER_TIME_API_URL).then(res => {
                 console.log('felibs res get time: ', res);
                 const isSuccess = res.status === 200;
                 const hasDateTime = res && res.data.data.time;
