@@ -9,8 +9,6 @@ const defaultHttpVersion = 'HTTP/1.1';
 const algorithm = 'hmac-sha256';
 const methodList = ['GET', 'POST', 'UPDATE', 'DELETE', 'PUT'];
 
-const getUTCDate = () => new Date().toUTCString();
-
 const getUrlPath = (url) => {
     let urlPath = url;
     const match = url.match(/^(https?:)\/\/(([^:/?#]*)(?::([0-9]+))?)([/]{0,1}[^?#]*)(\?[^#]*|)(#.*|)$/);
@@ -37,7 +35,7 @@ class OkaHMAC {
             xDate: null
         };
 
-        ServerTime.initialize();
+        this.ServerTime = ServerTime;
     }
 
     setConfig = (kongServiceConfigs = null) => {
@@ -76,7 +74,11 @@ class OkaHMAC {
         return _get(servicesConfig, serviceName) || {};
     }
 
-    generateHeader = (context) => {
+    generateHeader = async(context) => {
+        if (!this.ServerTime.initialized) {
+            await this.ServerTime.init();
+        }
+
         const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '' } = context;
 
         let { method } = context;
@@ -110,7 +112,7 @@ class OkaHMAC {
         const path = getUrlPath(requestUrl);
 
         // const xDate = getUTCDate();
-        const xDate = ServerTime.getServerTime().toUTCString();
+        const xDate = ServerTime.getTime().toUTCString();
         const request = `x-date: ${xDate}\n${requestMethod} ${path} ${httpVersionVal}\ndigest: ${digest}`;
         const hash = hMacSHA256(request, serviceConfig.consumerSecret);
         const signature = Base64.stringify(hash);
@@ -129,8 +131,9 @@ class OkaHMAC {
         };
     }
 
-    updateHeaders = context => {
-        const kongRequestHeader = this.generateHeader(context);
+    updateHeaders = async(context) => {
+
+        const kongRequestHeader = await this.generateHeader(context);
 
         if (!_isEmpty(kongRequestHeader)) {
             const { xSignature, xDigest, xDate } = this.hmacInfo;

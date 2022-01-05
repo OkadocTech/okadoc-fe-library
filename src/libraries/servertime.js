@@ -1,7 +1,8 @@
 import axios from 'axios';
+import _get from 'lodash/get';
 
 const INTERVAL_VAL = 1000;
-const SERVER_TIME_API_URL= 'https://service.okadoc.com/locale/v1/appservice/time';
+const SERVER_TIME_API_URL = 'https://service.okadoc.com/locale/v1/appservice/time';
 const isValidDate = function (dateTime) {
     if (dateTime) {
         try {
@@ -15,40 +16,42 @@ const isValidDate = function (dateTime) {
 }
 
 const ServerTime = {
-    serverTime: null,
-    usingServerTime: false,
-    serverTimeCounter: null,
-    getServerTime: function () {
-        if (this.usingServerTime && this.serverTime) {
-            return this.serverTime;
+    time: null,
+    counter: null,
+    initialized: false,
+    isUseServerTime: false,
+    getTime: function () {
+        if (this.isUseServerTime && this.time) {
+            return this.time;
         }
         return new Date();
     },
-    startServerTimeCounter: function (dateTime) {
+    start: function (dateTime) {
         if (isValidDate(dateTime)) {
-            this.usingServerTime = true;
+            this.isUseServerTime = true;
             this.initialized = true;
-            this.serverTime = new Date(dateTime);
-            this.serverTimeCounter = setInterval(() => {
-                const nextSecond = this.serverTime.getSeconds() + 1;
-                this.serverTime.setSeconds(nextSecond);
+            this.time = new Date(dateTime);
+            this.counter = setInterval(() => {
+                const nextSecond = this.time.getSeconds() + 1;
+                this.time.setSeconds(nextSecond);
             }, INTERVAL_VAL);
         }
     },
-    initialize: function () {
+    init: async function () {
         if (!this.usingServerTime) {
             const self = this;
             // get server time
-            axios.get(SERVER_TIME_API_URL).then(res => {
-                console.log('felibs res get time: ', res);
-                const isSuccess = res.status === 200;
-                const hasDateTime = res && res.data.data.time;
-                if (isSuccess && hasDateTime) {
-                    self.startServerTimeCounter(res.data.data.time);
-                }
-            }).catch(err =>  {
-                console.error('Failed to get server time: ', error);
+            const res = await axios.get(SERVER_TIME_API_URL).catch(err => {
+                console.error('Failed to get server time: ', err);
             });
+
+            const isSuccess = res.status === 200;
+            const dateTime = _get(res, 'data.data.time') || false;
+
+            if (isSuccess && dateTime) {
+                this.initialized =  true;
+                self.start(dateTime);
+            }
         }
     }
 };
