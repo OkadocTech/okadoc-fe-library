@@ -2,6 +2,7 @@ import axios from 'axios';
 import _get from 'lodash/get';
 
 const INTERVAL_VAL = 1000;
+const ACCEPTED_DIFF_TIME_IN_SECONDS = 300;
 const SERVER_TIME_API_URL = 'https://service.okadoc.com/locale/v1/appservice/time';
 const isValidDate = function (dateTime) {
     if (dateTime) {
@@ -13,7 +14,13 @@ const isValidDate = function (dateTime) {
         }
     }
     return false;
-}
+};
+
+const getSecondsBetweenDates = function(startDate, endDate) {
+    let diff = endDate.getTime() - startDate.getTime();
+
+    return (diff / 1000);
+};
 
 const Timer = function () {
     this.value = null;
@@ -39,12 +46,17 @@ Timer.prototype.start = async function (dateTime) {
 
     return new Promise(resolve => {
         if (isValidDate(dateTime)) {
-            self.isUseServerTime = true;
+            const localDate = new Date();
             self.value = new Date(dateTime);
-            self.counter = setInterval(() => {
-                const nextSecond = self.value.getSeconds() + 1;
-                self.value.setSeconds(nextSecond);
-            }, INTERVAL_VAL);
+            const timeDiffInSeconds = getSecondsBetweenDates(localDate, self.value);
+
+            if (timeDiffInSeconds > ACCEPTED_DIFF_TIME_IN_SECONDS) {
+                self.isUseServerTime = true;
+                self.counter = setInterval(() => {
+                    const nextSecond = self.value.getSeconds() + 1;
+                    self.value.setSeconds(nextSecond);
+                }, INTERVAL_VAL);
+            }
         }
         resolve(true);
     });
