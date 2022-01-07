@@ -15,45 +15,61 @@ const isValidDate = function (dateTime) {
     return false;
 }
 
-const ServerTime = {
-    time: null,
-    counter: null,
-    initialized: false,
-    isUseServerTime: false,
-    getTime: function () {
-        if (this.isUseServerTime && this.time) {
-            return this.time;
-        }
-        return new Date();
-    },
-    start: function (dateTime) {
+const Timer = function () {
+    this.value = null;
+    this.counter = null;
+    this.initialized = false;
+    this.isUseServerTime = false;
+};
+
+Timer.prototype.get = function () {
+    if (this.isUseServerTime && this.value) {
+        return this.value;
+    }
+    return new Date();
+};
+
+Timer.prototype.start = async function (dateTime) {
+    const self = this;
+
+    if (self.counter) {
+        clearInterval(self.counter);
+        self.counter = null;
+    }
+
+    return new Promise(resolve => {
         if (isValidDate(dateTime)) {
-            this.isUseServerTime = true;
-            this.initialized = true;
-            this.time = new Date(dateTime);
-            this.counter = setInterval(() => {
-                const nextSecond = this.time.getSeconds() + 1;
-                this.time.setSeconds(nextSecond);
+            self.isUseServerTime = true;
+            self.value = new Date(dateTime);
+            self.counter = setInterval(() => {
+                const nextSecond = self.value.getSeconds() + 1;
+                self.value.setSeconds(nextSecond);
             }, INTERVAL_VAL);
         }
-    },
-    init: async function () {
-        if (!this.usingServerTime) {
-            const self = this;
-            // get server time
-            const res = await axios.get(SERVER_TIME_API_URL).catch(err => {
-                console.error('Failed to get server time: ', err);
-            });
+        resolve(true);
+    });
+};
 
-            const isSuccess = res.status === 200;
-            const dateTime = _get(res, 'data.data.time') || false;
-
-            if (isSuccess && dateTime) {
-                this.initialized =  true;
-                self.start(dateTime);
+Timer.prototype.init = async function () {
+    if (!this.isUseServerTime) {
+        const self = this;
+        // get server time
+        const res = await axios.get(SERVER_TIME_API_URL).catch(err => {
+            console.error('Failed to get server time: ', err);
+            if (self.counter) {
+                clearInterval(self.counter);
+                self.counter = null;
             }
+        });
+
+        const isSuccess = res.status === 200;
+        const dateTime = _get(res, 'data.data.time') || false;
+
+        if (isSuccess && dateTime) {
+            await self.start(dateTime);
+            self.initialized = true;
         }
     }
 };
 
-export default ServerTime;
+export default Timer;

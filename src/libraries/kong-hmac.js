@@ -3,7 +3,7 @@ import _isEmpty from 'lodash/isEmpty';
 import sha256 from 'crypto-js/sha256';
 import Base64 from 'crypto-js/enc-base64';
 import hMacSHA256 from 'crypto-js/hmac-sha256';
-import ServerTime from './servertime';
+import ServerTimer from './servertime';
 
 const defaultHttpVersion = 'HTTP/1.1';
 const algorithm = 'hmac-sha256';
@@ -35,7 +35,7 @@ class OkaHMAC {
             xDate: null
         };
 
-        this.ServerTime = ServerTime;
+        this.timer = new ServerTimer();
     }
 
     setConfig = (kongServiceConfigs = null) => {
@@ -75,8 +75,8 @@ class OkaHMAC {
     }
 
     generateHeader = async(context) => {
-        if (!this.ServerTime.initialized) {
-            await this.ServerTime.init();
+        if (!this.timer.initialized) {
+            await this.timer.init();
         }
 
         const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '' } = context;
@@ -111,8 +111,7 @@ class OkaHMAC {
         const requestUrl = (isJQueryAjax || isFullPathUrl) ? url : `${baseURL}${url}`;
         const path = getUrlPath(requestUrl);
 
-        // const xDate = getUTCDate();
-        const xDate = ServerTime.getTime().toUTCString();
+        const xDate = this.timer.get().toUTCString();
         const request = `x-date: ${xDate}\n${requestMethod} ${path} ${httpVersionVal}\ndigest: ${digest}`;
         const hash = hMacSHA256(request, serviceConfig.consumerSecret);
         const signature = Base64.stringify(hash);
@@ -132,7 +131,6 @@ class OkaHMAC {
     }
 
     updateHeaders = async(context) => {
-
         const kongRequestHeader = await this.generateHeader(context);
 
         if (!_isEmpty(kongRequestHeader)) {
