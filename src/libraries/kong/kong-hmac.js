@@ -3,7 +3,7 @@ import _isEmpty from 'lodash/isEmpty';
 import sha256 from 'crypto-js/sha256';
 import Base64 from 'crypto-js/enc-base64';
 import hMacSHA256 from 'crypto-js/hmac-sha256';
-import ServerTimer from './servertime';
+// import ServerTimer from './servertime';
 
 const defaultHttpVersion = 'HTTP/1.1';
 const algorithm = 'hmac-sha256';
@@ -21,6 +21,19 @@ const getUrlPath = (url) => {
     return url;
 };
 
+/**
+ * Get date in UTC string date formatting 
+ * @param {*} timeDiff timestamp in ms
+ */
+ const getXDateValue = (timeDiff = 0) => {
+    let xDate = new Date(); 
+    if (timeDiff && (timeDiff > 0)) {
+        const localTime = xDate.getTime();
+        xDate = new Date(localTime + timeDiff);
+    }
+    return xDate.toUTCString();
+};
+
 class OkaHMAC {
 
     config = {}
@@ -35,7 +48,7 @@ class OkaHMAC {
             xDate: null
         };
 
-        this.timer = new ServerTimer();
+        // this.timer = new ServerTimer();
     }
 
     setConfig = (kongServiceConfigs = null) => {
@@ -75,11 +88,11 @@ class OkaHMAC {
     }
 
     generateHeader = async(context) => {
-        if (!this.timer.initialized) {
-            await this.timer.init();
-        }
+        // if (!this.timer.initialized) {
+        //     await this.timer.init();
+        // }
 
-        const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '' } = context;
+        const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '', timeDiff = 0 } = context;
 
         let { method } = context;
 
@@ -111,7 +124,8 @@ class OkaHMAC {
         const requestUrl = (isJQueryAjax || isFullPathUrl) ? url : `${baseURL}${url}`;
         const path = getUrlPath(requestUrl);
 
-        const xDate = this.timer.get().toUTCString();
+        // const xDate = this.timer.get().toUTCString();
+        const xDate = getXDateValue(timeDiff);
         const request = `x-date: ${xDate}\n${requestMethod} ${path} ${httpVersionVal}\ndigest: ${digest}`;
         const hash = hMacSHA256(request, serviceConfig.consumerSecret);
         const signature = Base64.stringify(hash);

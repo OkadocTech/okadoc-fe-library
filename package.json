@@ -8,15 +8,19 @@
   "repository": "https://github.com/OkadocTech/okadoc-fe-library",
   "author": "Okadoc Frontend",
   "license": "MIT",
+  "files": [
+    "src"
+  ],
   "scripts": {
+    "build-dev": "webpack --progress --watch",
     "build": "webpack",
     "profile": "webpack --profile --json > stats.json"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/plugin-transform-runtime": "^7.16.7",
-    "@babel/preset-env": "^7.15.0",
-    "babel-loader": "^8.2.2",
+    "@babel/core": "^7.16.7",
+    "@babel/plugin-transform-runtime": "^7.16.8",
+    "@babel/preset-env": "^7.16.8",
+    "babel-loader": "^8.2.3",
     "babel-plugin-module-resolver": "^4.1.0",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
     "terser-webpack-plugin": "^5.2.5",
@@ -26,6 +30,7 @@
   "dependencies": {
     "axios": "^0.24.0",
     "crypto-js": "^4.1.1",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "universal-cookie": "^4.0.4"
   }
 }
