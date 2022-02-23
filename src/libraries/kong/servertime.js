@@ -3,9 +3,9 @@ import _get from 'lodash/get';
 import _isEmpty from 'lodash/isEmpty';
 import Cookies from 'universal-cookie';
 
-const INTERVAL_VAL = 1000;
 const ACCEPTED_DIFF_TIME_IN_SECONDS = 300;
 const SERVER_TIME_API_URL = 'https://service.okadoc.com/locale/v1/appservice/time';
+
 const isValidDate = function (dateTime) {
     if (dateTime) {
         try {
@@ -18,95 +18,29 @@ const isValidDate = function (dateTime) {
     return false;
 };
 
-const getSecondsBetweenDates = function(startDate, endDate) {
-    let diff = endDate.getTime() - startDate.getTime();
-
-    return (diff / 1000);
-};
-
-const Timer = function () {
-    this.value = null;
-    this.counter = null;
-    this.initialized = false;
-    this.isUseServerTime = false;
-};
-
-Timer.prototype.get = function () {
-    if (this.isUseServerTime && this.value) {
-        return this.value;
-    }
-    return new Date();
-};
-
-Timer.prototype.start = async function (dateTime) {
-    const self = this;
-
-    if (self.counter) {
-        clearInterval(self.counter);
-        self.counter = null;
-    }
-
-    return new Promise(resolve => {
-        if (isValidDate(dateTime)) {
-            const localDate = new Date();
-            self.value = new Date(dateTime);
-            const timeDiffInSeconds = getSecondsBetweenDates(localDate, self.value);
-
-            if (timeDiffInSeconds > ACCEPTED_DIFF_TIME_IN_SECONDS) {
-                self.isUseServerTime = true;
-                self.counter = setInterval(() => {
-                    const nextSecond = self.value.getSeconds() + 1;
-                    self.value.setSeconds(nextSecond);
-                }, INTERVAL_VAL);
-            }
-        }
-        resolve(true);
-    });
-};
-
-Timer.prototype.init = async function () {
-    if (!this.isUseServerTime && typeof axios.get === 'function') {
-        const self = this;
-        // get server time
-        const res = await axios.get(SERVER_TIME_API_URL).catch(err => {
-            console.error('Failed to get server time: ', err);
-            if (self.counter) {
-                clearInterval(self.counter);
-                self.counter = null;
-            }
-        });
-
-        const isSuccess = res.status === 200;
-        const dateTime = _get(res, 'data.data.time') || false;
-
-        if (isSuccess && dateTime) {
-            await self.start(dateTime);
-            self.initialized = true;
-        }
-    }
-};
-
-export default Timer;
-
 let cookies = new Cookies();
 const serverTimeDiffMaxAge = 10 * 60 * 1000;
 const serverTimeDiffKey = '__D1Ff5t';
 
-const setCookie = ({ isServer = false, cookieSetter = null, value, maxAge }) => {
-    const opts = { maxAge, secure: true }
-    if (isServer && (typeof cookieSetter === 'function')) {
-        cookieSetter(serverTimeDiffKey, clientID, opts);
-    } else {
-        cookies.set(serverTimeDiffKey, value, { ...opts, path: '/' });
-    }
+const setCookie = (value = 0, options = {}) => {
+    const opts = { secure: true, ...options }
+    const cookieVal = JSON.stringify({ diff: value, called: true });
+
+    cookies.set(serverTimeDiffKey, cookieVal, { ...opts, path: '/' });
 };
 
-const getCookie = ({ isServer = false, cookieHeaders = '' }) => {
+const getCookie = () => {
+    const defValue = { diff: 0, called: false };
+
     try {
-        const cookieHandler = isServer ? new Cookies(cookieHeaders) : cookies;
-        return +(cookieHandler.get(serverTimeDiffKey)) || 0;
+        const cookieVal = cookies.get(serverTimeDiffKey) || '';
+        if (cookieVal) {
+            return JSON.parse(cookieVal);
+        }
+        return defValue;
+
     } catch (error) {
-        return 0;
+        return defValue;
     }
 };
 
@@ -132,18 +66,70 @@ const getServerTimeDiffInfo = async() => {
     return timeDiff;
 };
 
-export const getTimeDiff = async({ isServer = false, cookieHeaders = '', cookieSetter = false, maxAge = serverTimeDiffMaxAge }) => {
-    let timeDiff = getCookie({ isServer, cookieHeaders }) || 0;
+export const getTimeDiff = async(options = {}) => {
+    try {
+        const { cookieOptions = { maxAge: serverTimeDiffMaxAge }, isServer = false, skipGetServerTime = false } = options;
 
-    if (timeDiff && (timeDiff > 0)) {
-        return  timeDiff
+        // No need to check `time-diff` if the request runs on the server-side (ssr)
+        if (isServer) return 0;
+
+        const cookieVal = getCookie();
+        let timeDiff = +(_get(cookieVal, 'diff')) || 0;
+        const isCalled = _get(cookieVal, 'called') || false;
+
+        if (timeDiff && (timeDiff > 0)) {
+            return timeDiff;
+        }
+
+        if (!isCalled && !skipGetServerTime) {
+            const diff = await getServerTimeDiffInfo();
+            // api for `get-server-time` has been called.
+            // store the `time-difference` value into the cookie for 10 minutes ttl
+            setCookie(diff, cookieOptions);
+            timeDiff = (diff && (diff > 0)) ? diff : 0;
+        }
+
+        return timeDiff;
+    } catch (error) {
+        console.log('error in getting time different: ', error);
+        return 0;
+    }
+};
+
+let subscribers = [];
+let isXDateRefreshed = false;
+
+const subscribeRefreshXDate = callback => {
+    subscribers.push(callback);
+};
+
+const onXDateRefreshed = timeDiff => subscribers.map(callback => callback(timeDiff));
+
+export const refreshXDate = (axiosConfig = {}, callBack) => {
+    const originalRequest = axiosConfig;
+    // check whether refresh x-Date has been called
+    if (!isXDateRefreshed) {
+        isXDateRefreshed = true;
+        getTimeDiff().then(diff => {
+            if (diff > 0) {
+                isXDateRefreshed = false;
+                onXDateRefreshed(diff);
+                // clear all subscribers
+                subscribers = [];
+            }
+        }).catch(err => err);
     }
 
-    const diff = await getServerTimeDiffInfo();
-    if (diff && (diff > 0)) {
-        timeDiff = diff;
-        setCookie({ isServer, value: diff, cookieSetter, maxAge });
-    }
+    // re-call previous request ...
+    return new Promise(resolve => {
+        subscribeRefreshXDate(timeDiff => {
+            originalRequest.timeDiff = timeDiff;
 
-    return timeDiff;
+            if (typeof callBack === 'function') {
+                callBack(originalRequest);
+            }
+
+            resolve(axios(originalRequest));
+        });
+    });
 };

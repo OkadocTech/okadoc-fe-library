@@ -1,7 +1,6 @@
 import OkaHMAC from './kong-hmac';
-import { getTimeDiff } from './servertime';
-
+import { getTimeDiff, refreshXDate } from './servertime';
 
 export {
-    OkaHMAC, getTimeDiff
+    OkaHMAC, getTimeDiff, refreshXDate
 };
