@@ -18,7 +18,7 @@ const isValidDate = function (dateTime) {
     return false;
 };
 
-let cookies = new Cookies();
+const cookies = new Cookies();
 const serverTimeDiffMaxAge = 10 * 60 * 1000;
 const serverTimeDiffKey = '__D1Ff5t';
 
@@ -68,14 +68,25 @@ const getServerTimeDiffInfo = async() => {
 
 export const getTimeDiff = async(options = {}) => {
     try {
-        const { cookieOptions = { maxAge: serverTimeDiffMaxAge }, isServer = false, skipGetServerTime = false } = options;
+        const { 
+            cookieOptions = { maxAge: serverTimeDiffMaxAge }, isServer = false, skipGetServerTime = false,
+            refreshingXdate = false
+        } = options;
 
         // No need to check `time-diff` if the request runs on the server-side (ssr)
         if (isServer) return 0;
 
         const cookieVal = getCookie();
         let timeDiff = +(_get(cookieVal, 'diff')) || 0;
-        const isCalled = _get(cookieVal, 'called') || false;
+        let isCalled = _get(cookieVal, 'called') || false;
+
+        if (isCalled && refreshingXdate) {
+            // to reset the `time-difference` and getting the new one
+            // in case that the user change his/her local datetime
+            timeDiff = 0;
+            isCalled = false;
+            cHandler.remove(campaignKey, { path: '/' });
+        }
 
         if (timeDiff && (timeDiff > 0)) {
             return timeDiff;
@@ -110,7 +121,7 @@ export const refreshXDate = (axiosConfig = {}, callBack) => {
     // check whether refresh x-Date has been called
     if (!isXDateRefreshed) {
         isXDateRefreshed = true;
-        getTimeDiff().then(diff => {
+        getTimeDiff({ refreshingXdate: true }).then(diff => {
             if (diff > 0) {
                 isXDateRefreshed = false;
                 onXDateRefreshed(diff);
