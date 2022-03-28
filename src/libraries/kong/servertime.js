@@ -33,13 +33,13 @@ const getCookie = () => {
     const defValue = { diff: 0, called: false };
 
     try {
-        const cookieVal = cookies.get(serverTimeDiffKey) || '';
-        if (cookieVal) {
-            return JSON.parse(cookieVal);
-        }
-        return defValue;
+        const cook = new Cookies();
+        const cookieVal = cook.get(serverTimeDiffKey) || defValue;
+        const diffInfo = typeof cookieVal === 'object' ? cookieVal : JSON.parse(cookieVal);
+        return diffInfo;
 
     } catch (error) {
+        console.log('error in getting cookie: ', error);
         return defValue;
     }
 };
@@ -66,11 +66,30 @@ const getServerTimeDiffInfo = async() => {
     return timeDiff;
 };
 
-export const getTimeDiff = async(options = {}) => {
+export const getTimeDiffFromCookie = (options = {}) => {
+    try {
+        const { isServer = false } = options;
+        // No need to check `time-diff` if the request runs on the server-side (ssr)
+        if (isServer) return 0;
+
+        const cookieVal = getCookie();
+        const timeDiff = +(_get(cookieVal, 'diff')) || 0;
+
+        if (timeDiff && (timeDiff > 0)) {
+            return timeDiff;
+        }
+
+        return timeDiff;
+    } catch (error) {
+        console.log('error in getting time different: ', error);
+        return 0;
+    }
+};
+
+const getTimeDiff = async(options = {}) => {
     try {
         const { 
-            cookieOptions = { maxAge: serverTimeDiffMaxAge }, isServer = false, skipGetServerTime = false,
-            refreshingXdate = false
+            cookieOptions = { maxAge: serverTimeDiffMaxAge }, isServer = false, refreshingXdate = false
         } = options;
 
         // No need to check `time-diff` if the request runs on the server-side (ssr)
@@ -92,7 +111,7 @@ export const getTimeDiff = async(options = {}) => {
             return timeDiff;
         }
 
-        if (!isCalled && !skipGetServerTime) {
+        if (!isCalled) {
             const diff = await getServerTimeDiffInfo();
             // api for `get-server-time` has been called.
             // store the `time-difference` value into the cookie for 10 minutes ttl
