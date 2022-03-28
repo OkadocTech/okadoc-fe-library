@@ -56,9 +56,17 @@ const getServerTimeDiffInfo = async() => {
         const localTime = new Date().getTime();
 
         // total diff in ms
-        const diff = (serverTime > localTime) ? (serverTime - localTime) :  0;
+        let diff = 0;
+        // const diff = (serverTime > localTime) ? (serverTime - localTime) :  0;
+        if (serverTime > localTime) {
+            serverTime = serverTime - localTime;
+        } else if (serverTime < localTime) {
+            diff = serverTime - localTime;
+        }
 
-        if ((diff / 1000) >= ACCEPTED_DIFF_TIME_IN_SECONDS) {
+        const checkDiff = diff < 0 ? (diff * -1) : diff;
+    
+        if ((checkDiff / 1000) >= ACCEPTED_DIFF_TIME_IN_SECONDS) {
             timeDiff = diff;
         }
     }
@@ -75,7 +83,7 @@ export const getTimeDiffFromCookie = (options = {}) => {
         const cookieVal = getCookie();
         const timeDiff = +(_get(cookieVal, 'diff')) || 0;
 
-        if (timeDiff && (timeDiff > 0)) {
+        if (timeDiff && (timeDiff > 0 || timeDiff < 0)) {
             return timeDiff;
         }
 
@@ -116,7 +124,7 @@ const getTimeDiff = async(options = {}) => {
             // api for `get-server-time` has been called.
             // store the `time-difference` value into the cookie for 10 minutes ttl
             setCookie(diff, cookieOptions);
-            timeDiff = (diff && (diff > 0)) ? diff : 0;
+            timeDiff = (diff && (diff > 0 || diff < 0)) ? diff : 0;
         }
 
         return timeDiff;
@@ -141,7 +149,7 @@ export const refreshXDate = (axiosConfig = {}, callBack) => {
     if (!isXDateRefreshed) {
         isXDateRefreshed = true;
         getTimeDiff({ refreshingXdate: true }).then(diff => {
-            if (diff > 0) {
+            if (diff > 0 || diff < 0) {
                 isXDateRefreshed = false;
                 onXDateRefreshed(diff);
                 // clear all subscribers

@@ -26,7 +26,7 @@ const getUrlPath = (url) => {
  */
 export const getXDateValue = (timeDiff = 0) => {
     let xDate = new Date();
-    if (timeDiff && (timeDiff > 0)) {
+    if (timeDiff && (timeDiff > 0 || timeDiff < 0)) {
         const localTime = xDate.getTime();
         xDate = new Date(localTime + timeDiff);
     }
