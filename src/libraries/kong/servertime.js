@@ -59,7 +59,7 @@ const getServerTimeDiffInfo = async() => {
         let diff = 0;
         // const diff = (serverTime > localTime) ? (serverTime - localTime) :  0;
         if (serverTime > localTime) {
-            serverTime = serverTime - localTime;
+            diff = serverTime - localTime;
         } else if (serverTime < localTime) {
             diff = serverTime - localTime;
         }
@@ -112,7 +112,7 @@ const getTimeDiff = async(options = {}) => {
             // in case that the user change his/her local datetime
             timeDiff = 0;
             isCalled = false;
-            cHandler.remove(campaignKey, { path: '/' });
+            cookies.remove(serverTimeDiffKey, { path: '/' });
         }
 
         if (timeDiff && (timeDiff > 0)) {
@@ -149,12 +149,10 @@ export const refreshXDate = (axiosConfig = {}, callBack) => {
     if (!isXDateRefreshed) {
         isXDateRefreshed = true;
         getTimeDiff({ refreshingXdate: true }).then(diff => {
-            if (diff > 0 || diff < 0) {
-                isXDateRefreshed = false;
-                onXDateRefreshed(diff);
-                // clear all subscribers
-                subscribers = [];
-            }
+            isXDateRefreshed = false;
+            onXDateRefreshed(diff);
+            // clear all subscribers
+            subscribers = [];
         }).catch(err => err);
     }
 
