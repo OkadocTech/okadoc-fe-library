@@ -10,17 +10,19 @@ module.exports = {
         filename: 'index.js',
         library: {
             name: 'okadoc-libs',
-            type: 'umd'
+            type: 'umd',
+            umdNamedDefine: true,
         },
-        globalObject: 'this'
+        globalObject: 'this',
     },
+    target: ['node', 'es5'],
     module: {
         rules: [
             {
                 test: /\.?js$/,
                 exclude: /node_modules/,
                 use: {
-                    loader: 'babel-loader',
+                    loader: 'babel-loader'
                 }
             },
         ]
@@ -28,10 +30,16 @@ module.exports = {
     optimization: {
         minimize: true,
         minimizer: [new TerserPlugin({
-            extractComments: true,
+            terserOptions: {
+                ecma: 5,
+                compress: true,
+                output: {
+                    comments: false,
+                    beautify: false
+                }
+            }
         })],
     },
-    target: ['es5', 'node'],
     plugins: [
         new CleanWebpackPlugin()
     ]

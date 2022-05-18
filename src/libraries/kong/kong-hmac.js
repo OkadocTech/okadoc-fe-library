@@ -3,7 +3,6 @@ import _isEmpty from 'lodash/isEmpty';
 import sha256 from 'crypto-js/sha256';
 import Base64 from 'crypto-js/enc-base64';
 import hMacSHA256 from 'crypto-js/hmac-sha256';
-import ServerTimer from './servertime';
 
 const defaultHttpVersion = 'HTTP/1.1';
 const algorithm = 'hmac-sha256';
@@ -21,6 +20,19 @@ const getUrlPath = (url) => {
     return url;
 };
 
+/**
+ * Get date in UTC string date formatting 
+ * @param {*} timeDiff timestamp in ms
+ */
+export const getXDateValue = (timeDiff = 0) => {
+    let xDate = new Date();
+    if (timeDiff && (timeDiff > 0 || timeDiff < 0)) {
+        const localTime = xDate.getTime();
+        xDate = new Date(localTime + timeDiff);
+    }
+    return xDate.toUTCString();
+};
+
 class OkaHMAC {
 
     config = {}
@@ -34,8 +46,6 @@ class OkaHMAC {
             xSignature: null,
             xDate: null
         };
-
-        this.timer = new ServerTimer();
     }
 
     setConfig = (kongServiceConfigs = null) => {
@@ -74,12 +84,8 @@ class OkaHMAC {
         return _get(servicesConfig, serviceName) || {};
     }
 
-    generateHeader = async(context) => {
-        if (!this.timer.initialized) {
-            await this.timer.init();
-        }
-
-        const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '' } = context;
+    generateHeader = (context) => {
+        const { data, isJQueryAjax = false, baseURL = '', url = '', name, httpVersion = '', type = '', timeDiff = 0 } = context;
 
         let { method } = context;
 
@@ -111,7 +117,7 @@ class OkaHMAC {
         const requestUrl = (isJQueryAjax || isFullPathUrl) ? url : `${baseURL}${url}`;
         const path = getUrlPath(requestUrl);
 
-        const xDate = this.timer.get().toUTCString();
+        const xDate = getXDateValue(timeDiff);
         const request = `x-date: ${xDate}\n${requestMethod} ${path} ${httpVersionVal}\ndigest: ${digest}`;
         const hash = hMacSHA256(request, serviceConfig.consumerSecret);
         const signature = Base64.stringify(hash);
@@ -120,18 +126,18 @@ class OkaHMAC {
         this.hmacInfo = {
             xSignature: signatureHeader,
             xDigest: digest,
-            xDate: xDate
+            xDate
         };
 
         return {
             'Oka-Authorization': signatureHeader,
             Digest: digest,
-            Date: xDate,
+            xDate
         };
     }
 
-    updateHeaders = async(context) => {
-        const kongRequestHeader = await this.generateHeader(context);
+    updateHeaders = (context) => {
+        const kongRequestHeader = this.generateHeader(context);
 
         if (!_isEmpty(kongRequestHeader)) {
             const { xSignature, xDigest, xDate } = this.hmacInfo;
