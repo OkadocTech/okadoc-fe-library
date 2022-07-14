@@ -5,8 +5,8 @@ import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 export default {
     input : {
         index: "./src/index.js",
-        OkaHMAC: "./src/kong/index.js",
-        OkaCookies: "./src/oka-cookies/index.js"
+        hmac: "./src/kong/index.js",
+        cookies: "./src/oka-cookies/index.js"
     },
     output: [{
         entryFileNames: '[name].js',
