@@ -1,6 +1,5 @@
 import axios from 'axios';
 import _get from 'lodash/get';
-import _isEmpty from 'lodash/isEmpty';
 import Cookies from 'universal-cookie';
 
 const ACCEPTED_DIFF_TIME_IN_SECONDS = 300;
