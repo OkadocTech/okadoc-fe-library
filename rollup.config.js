@@ -6,7 +6,7 @@ export default {
     input : {
         index: "./src/index.js",
         hmac: "./src/kong/index.js",
-        cookies: "./src/oka-cookies/index.js"
+        // cookies: "./src/oka-cookies/index.js"
     },
     output: [{
         entryFileNames: '[name].js',

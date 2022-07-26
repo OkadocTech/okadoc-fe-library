@@ -1,6 +1,6 @@
 {
   "name": "okadoc-libs",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "All Okadoc's Micro Libraries",
   "sideEffects": false,
   "repository": "https://github.com/OkadocTech/okadoc-fe-library",
@@ -8,7 +8,7 @@
   "main": "lib/index.js",
   "module": "lib/index.es.js",
   "files": [
-      "lib"
+    "lib"
   ],
   "license": "MIT",
   "scripts": {
@@ -23,9 +23,7 @@
     "rollup": "^2.76.0",
     "rollup-plugin-cleaner": "^1.0.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-terser": "^7.0.2",
-    "webpack": "^5.51.1",
-    "webpack-cli": "^4.8.0"
+    "rollup-plugin-terser": "^7.0.2"
   },
   "dependencies": {
     "axios": "^0.24.0",
